@@ -1,4 +1,4 @@
-import { Container, Typography, List, ListItem, ListItemText, Divider, Box, Alert, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, MenuItem, IconButton, Snackbar, Card, CardContent, Chip, Stack, Tooltip, Fade } from '@mui/material';
+import { Container, Typography, List, ListItem, ListItemText, Divider, Box, Alert, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, MenuItem, IconButton, Snackbar, Card, CardContent, Chip, Stack, Tooltip, Fade, CircularProgress } from '@mui/material';
 import { useState, useEffect } from 'react';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -6,6 +6,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import EventIcon from '@mui/icons-material/Event';
 import TaskIcon from '@mui/icons-material/Task';
 import FreeBreakfastIcon from '@mui/icons-material/FreeBreakfast';
+import { getEvents, addEvent, updateEvent, deleteEvent, Event as EventType } from '../services/eventService';
 
 const eventTypes = [
   { value: 'meeting', label: 'Takim', icon: <EventIcon color="primary" /> },
@@ -21,24 +22,22 @@ function parseTimeToMinutes(time: string) {
 }
 
 const DashboardPage = () => {
-  const [agenda, setAgenda] = useState([]);
+  const [agenda, setAgenda] = useState<EventType[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editIndex, setEditIndex] = useState<number | null>(null);
-  const [newEvent, setNewEvent] = useState({ title: '', time: '', type: 'meeting', status: 'pending' });
+  const [newEvent, setNewEvent] = useState<EventType>({ title: '', time: '', type: 'meeting', status: 'pending' });
   const [notification, setNotification] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Lexo nga localStorage në fillim
+  // Fetch events from backend on mount
   useEffect(() => {
-    const stored = localStorage.getItem('intrasync-agenda');
-    if (stored) {
-      setAgenda(JSON.parse(stored));
-    }
+    setLoading(true);
+    getEvents()
+      .then(events => setAgenda(events))
+      .catch(() => setError('Nuk u lexuan eventet nga serveri!'))
+      .finally(() => setLoading(false));
   }, []);
-
-  // Ruaj në localStorage sa herë ndryshon agenda
-  useEffect(() => {
-    localStorage.setItem('intrasync-agenda', JSON.stringify(agenda));
-  }, [agenda]);
 
   // Njoftim automatik për evente afër (10 min larg)
   useEffect(() => {
@@ -49,7 +48,7 @@ const DashboardPage = () => {
       if (nextEvent) {
         setNotification(`${nextEvent.type === 'meeting' ? 'Takimi' : nextEvent.type === 'task' ? 'Detyra' : 'Pushimi'} "${nextEvent.title}" fillon pas ${parseTimeToMinutes(nextEvent.time) - nowMinutes} minutash!`);
       }
-    }, 60000); // kontrollo çdo minutë
+    }, 60000);
     return () => clearInterval(interval);
   }, [agenda]);
 
@@ -71,29 +70,52 @@ const DashboardPage = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewEvent({ ...newEvent, [e.target.name]: e.target.value });
   };
-  const handleAddOrEditEvent = () => {
+  const handleAddOrEditEvent = async () => {
     if (newEvent.title && newEvent.time) {
-      if (editIndex !== null) {
-        const updated = [...agenda];
-        updated[editIndex] = newEvent;
-        setAgenda(updated);
-        setNotification('Eventi u përditësua me sukses!');
-      } else {
-        setAgenda([...agenda, newEvent]);
-        setNotification('Eventi u shtua me sukses!');
+      setLoading(true);
+      try {
+        if (editIndex !== null && agenda[editIndex]._id) {
+          const updated = await updateEvent(agenda[editIndex]._id, newEvent);
+          setAgenda(prev => prev.map((ev, i) => i === editIndex ? updated : ev));
+          setNotification('Eventi u përditësua me sukses!');
+        } else {
+          const added = await addEvent(newEvent);
+          setAgenda(prev => [...prev, added]);
+          setNotification('Eventi u shtua me sukses!');
+        }
+        handleCloseDialog();
+      } catch {
+        setError('Gabim gjatë ruajtjes së eventit!');
+      } finally {
+        setLoading(false);
       }
-      handleCloseDialog();
     }
   };
-  const handleDeleteEvent = (idx: number) => {
-    setAgenda(agenda.filter((_, i) => i !== idx));
-    setNotification('Eventi u fshi me sukses!');
+  const handleDeleteEvent = async (idx: number) => {
+    if (!agenda[idx]._id) return;
+    setLoading(true);
+    try {
+      await deleteEvent(agenda[idx]._id!);
+      setAgenda(prev => prev.filter((_, i) => i !== idx));
+      setNotification('Eventi u fshi me sukses!');
+    } catch {
+      setError('Gabim gjatë fshirjes së eventit!');
+    } finally {
+      setLoading(false);
+    }
   };
-  const handleCompleteEvent = (idx: number) => {
-    const updated = [...agenda];
-    updated[idx].status = 'complete';
-    setAgenda(updated);
-    setNotification(`Urime! Përfundove "${updated[idx].title}".`);
+  const handleCompleteEvent = async (idx: number) => {
+    if (!agenda[idx]._id) return;
+    setLoading(true);
+    try {
+      const updated = await updateEvent(agenda[idx]._id!, { ...agenda[idx], status: 'complete' });
+      setAgenda(prev => prev.map((ev, i) => i === idx ? updated : ev));
+      setNotification(`Urime! Përfundove "${updated.title}".`);
+    } catch {
+      setError('Gabim gjatë përfundimit të eventit!');
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Filtrim & renditje: pending lart, pastaj sipas kohës, pastaj tipit
@@ -122,6 +144,8 @@ const DashboardPage = () => {
         <Typography variant={{ xs: 'h5', sm: 'h4' }} gutterBottom sx={{ fontWeight: 700, mb: 3, textAlign: 'center', fontSize: { xs: 28, sm: 34 } }}>Dashboard</Typography>
         <Typography mb={4} textAlign="center" sx={{ fontSize: { xs: 15, sm: 16 } }}>Mirësevini në IntraSync! Këtu do të shfaqen axhenda, njoftime dhe funksionalitete të tjera.</Typography>
         <Box>
+          {loading && <Box display="flex" justifyContent="center" alignItems="center" minHeight={120}><CircularProgress /></Box>}
+          {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
           <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'stretch', sm: 'center' }} mb={2} gap={2}>
             <Typography variant="h6" sx={{ textAlign: { xs: 'center', sm: 'left' } }}>Axhenda e Ditës</Typography>
             <Button variant="contained" size="large" onClick={() => handleOpenDialog()} sx={{ borderRadius: 3, fontWeight: 600 }} fullWidth={true}>
