@@ -9,6 +9,8 @@ import DashboardPage from './pages/DashboardPage';
 import CheckInPage from './pages/CheckInPage';
 import Navbar from './components/Navbar';
 import CompanyCalendarPage from './pages/CompanyCalendarPage';
+import CheckOutPage from './pages/CheckOutPage';
+import NotificationsPage from './pages/NotificationsPage';
 
 function App() {
   return (
@@ -19,6 +21,8 @@ function App() {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/checkin" element={<CheckInPage />} />
         <Route path="/calendar" element={<CompanyCalendarPage />} />
+        <Route path="/checkout" element={<CheckOutPage />} />
+        <Route path="/notifications" element={<NotificationsPage />} />
       </Routes>
     </Router>
   );

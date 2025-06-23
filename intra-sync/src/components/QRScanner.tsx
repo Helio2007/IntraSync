@@ -32,6 +32,11 @@ const QRScanner: React.FC<QRScannerProps> = ({ onScan, onError }) => {
           }
         },
         (error) => {
+          // Only call onError for real errors, not for NotFoundException (no QR code found)
+          if (typeof error === 'string' && error.includes('NotFoundException')) {
+            // Do nothing, keep scanning
+            return;
+          }
           if (onError) onError(error);
         }
       ).then(() => {

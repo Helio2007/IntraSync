@@ -5,9 +5,10 @@ import { getEvents, addEvent } from '../services/eventService';
 
 const MOCK_USER_ID = 'user123'; // Replace with real user ID when available
 
-const CheckInPage = () => {
+const CheckOutPage = () => {
   const [scanResult, setScanResult] = useState<string | null>(null);
   const [checkedIn, setCheckedIn] = useState(false);
+  const [checkedOut, setCheckedOut] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,11 +24,13 @@ const CheckInPage = () => {
         if (userEvents.length > 0) {
           const latest = userEvents[userEvents.length - 1];
           setCheckedIn(latest.type === 'checkin');
+          setCheckedOut(latest.type === 'checkout');
         } else {
           setCheckedIn(false);
+          setCheckedOut(false);
         }
       } catch (err) {
-        setError('Nuk mund të merret statusi i check-in.');
+        setError('Nuk mund të merret statusi i check-out.');
       } finally {
         setLoading(false);
       }
@@ -39,19 +42,20 @@ const CheckInPage = () => {
     setError('Gabim gjatë skanimit.');
   };
 
-  const handleCheckIn = async () => {
+  const handleCheckOut = async () => {
     setError(null);
     try {
       await addEvent({
-        title: 'Check-In',
+        title: 'Check-Out',
         time: new Date().toISOString(),
-        type: 'checkin',
+        type: 'checkout',
         status: 'complete',
       });
-      setCheckedIn(true);
+      setCheckedIn(false);
+      setCheckedOut(true);
       setScanResult(null);
     } catch (err) {
-      setError('Gabim gjatë regjistrimit të check-in.');
+      setError('Gabim gjatë regjistrimit të check-out.');
     }
   };
 
@@ -65,32 +69,35 @@ const CheckInPage = () => {
       <Card elevation={4} sx={{ width: { xs: '100%', sm: 400 }, borderRadius: 4, p: { xs: 1.5, sm: 2 }, bgcolor: 'background.paper' }}>
         <CardContent>
           <Typography variant={{ xs: 'h5', sm: 'h4' }} align="center" fontWeight={700} gutterBottom sx={{ mb: 3, color: 'primary.main', fontSize: { xs: 28, sm: 34 } }}>
-            Check-In
+            Check-Out
           </Typography>
           <Box sx={{ my: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
             {loading && <CircularProgress />}
-            {!loading && checkedIn && (
-              <Alert severity="success" sx={{ width: '100%' }}>Jeni i checkuar brenda!</Alert>
+            {!loading && checkedOut && (
+              <Alert severity="success" sx={{ width: '100%' }}>Jeni i checkuar jashtë!</Alert>
             )}
-            {!loading && !checkedIn && !scanResult && !error && (
+            {!loading && !checkedOut && checkedIn && !scanResult && !error && (
               <Fade in timeout={500}>
                 <Box>
                   <QRScanner onScan={setScanResult} onError={handleError} />
                 </Box>
               </Fade>
             )}
-            {scanResult && !checkedIn && (
+            {scanResult && !checkedOut && checkedIn && (
               <Alert severity="info" sx={{ mb: 2, width: '100%' }}>QR Code: {scanResult}</Alert>
             )}
-            {scanResult && !checkedIn && (
-              <Button variant="contained" color="success" size="large" fullWidth sx={{ fontWeight: 600, borderRadius: 3 }} onClick={handleCheckIn}>
-                Konfirmo Check-In
+            {scanResult && !checkedOut && checkedIn && (
+              <Button variant="contained" color="success" size="large" fullWidth sx={{ fontWeight: 600, borderRadius: 3 }} onClick={handleCheckOut}>
+                Konfirmo Check-Out
               </Button>
+            )}
+            {!checkedIn && !checkedOut && !loading && (
+              <Alert severity="info" sx={{ width: '100%' }}>Nuk jeni i checkuar brenda. Fillimisht kryeni check-in.</Alert>
             )}
             {(error && !loading) && (
               <Alert severity="error" sx={{ width: '100%' }}>{error}</Alert>
             )}
-            {(!!scanResult || !!error) && !checkedIn && !loading && (
+            {(!!scanResult || !!error) && !checkedOut && checkedIn && !loading && (
               <Button variant="outlined" color="primary" sx={{ mt: 2 }} onClick={handleRetry}>
                 Provo përsëri
               </Button>
@@ -102,4 +109,4 @@ const CheckInPage = () => {
   );
 };
 
-export default CheckInPage; 
+export default CheckOutPage; 
