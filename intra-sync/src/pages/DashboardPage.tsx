@@ -7,6 +7,7 @@ import EventIcon from '@mui/icons-material/Event';
 import TaskIcon from '@mui/icons-material/Task';
 import FreeBreakfastIcon from '@mui/icons-material/FreeBreakfast';
 import { getEvents, addEvent, updateEvent, deleteEvent, Event as EventType } from '../services/eventService';
+import { useAuth } from '../context/AuthContext';
 
 const eventTypes = [
   { value: 'meeting', label: 'Takim', icon: <EventIcon color="primary" /> },
@@ -22,6 +23,7 @@ function parseTimeToMinutes(time: string) {
 }
 
 const DashboardPage = () => {
+  const { user } = useAuth();
   const [agenda, setAgenda] = useState<EventType[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editIndex, setEditIndex] = useState<number | null>(null);
@@ -153,9 +155,11 @@ const DashboardPage = () => {
             <Typography variant="h6" sx={{ fontWeight: 600 }}>
               Axhenda e Ditës
             </Typography>
-            <Button variant="contained" color="primary" onClick={handleOpenDialog}>
-              Shto Event
-            </Button>
+            <Box>
+              <Button variant="contained" color="primary" onClick={handleOpenDialog} sx={{ mr: 1 }}>
+                Shto Event
+              </Button>
+            </Box>
           </Box>
 
           <Box>

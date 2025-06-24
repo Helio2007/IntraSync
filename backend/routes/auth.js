@@ -42,9 +42,9 @@ router.post('/login', async (req, res) => {
       console.log('Login failed: wrong password', email);
       return res.status(400).json({ message: 'Invalid credentials' });
     }
-    const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '1d' });
+    const token = jwt.sign({ userId: user._id, role: user.role }, JWT_SECRET, { expiresIn: '1d' });
     console.log('Login success:', email);
-    res.json({ token, user: { name: user.name, email: user.email } });
+    res.json({ token, user: { name: user.name, email: user.email, role: user.role } });
   } catch (err) {
     console.error('Login error:', err);
     res.status(500).json({ message: 'Server error' });

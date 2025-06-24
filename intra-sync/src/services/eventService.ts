@@ -27,4 +27,43 @@ export const updateEvent = async (id: string, event: Event): Promise<Event> => {
 
 export const deleteEvent = async (id: string): Promise<void> => {
   await axios.delete(`${API_URL}/${id}`);
+};
+
+export interface CompanyEvent {
+  _id?: string;
+  title: string;
+  date: string;
+  time: string;
+  type: string;
+  createdBy?: string;
+  createdAt?: string;
+}
+
+const COMPANY_API_URL = 'http://localhost:4000/api/company-events';
+
+export const getCompanyEvents = async (token: string): Promise<CompanyEvent[]> => {
+  const res = await axios.get(COMPANY_API_URL, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return res.data;
+};
+
+export const addCompanyEvent = async (event: CompanyEvent, token: string): Promise<CompanyEvent> => {
+  const res = await axios.post(COMPANY_API_URL, event, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return res.data;
+};
+
+export const updateCompanyEvent = async (id: string, event: CompanyEvent, token: string): Promise<CompanyEvent> => {
+  const res = await axios.put(`${COMPANY_API_URL}/${id}`, event, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return res.data;
+};
+
+export const deleteCompanyEvent = async (id: string, token: string): Promise<void> => {
+  await axios.delete(`${COMPANY_API_URL}/${id}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
 }; 

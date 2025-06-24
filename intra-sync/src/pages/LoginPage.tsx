@@ -3,12 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import axios from 'axios';
 import { useTheme } from '@mui/material/styles';
+import { useAuth } from '../context/AuthContext';
 import logoBlack from '../assets/intrasync-logo-black.png';
 import logoWhite from '../assets/intrasync-logo-white.png';
 
 const LoginPage = () => {
   const theme = useTheme();
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -18,8 +20,7 @@ const LoginPage = () => {
     setError('');
     try {
       const res = await axios.post('/api/auth/login', { email, password });
-      localStorage.setItem('token', res.data.token);
-      localStorage.setItem('user', JSON.stringify(res.data.user));
+      login(res.data.user, res.data.token);
       navigate('/dashboard');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Login failed');

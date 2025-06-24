@@ -4,6 +4,8 @@ import './index.css'
 import App from './App.tsx'
 import { ThemeProvider, createTheme } from '@mui/material/styles'
 import CssBaseline from '@mui/material/CssBaseline'
+import { CheckInStatusProvider } from './context/CheckInStatusContext'
+import { AuthProvider } from './context/AuthContext'
 
 export const ColorModeContext = createContext({ toggleColorMode: () => {}, mode: 'light' })
 
@@ -59,8 +61,12 @@ const Main = () => {
   return (
     <ColorModeContext.Provider value={colorMode}>
       <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <App />
+        <AuthProvider>
+          <CheckInStatusProvider>
+            <CssBaseline />
+            <App />
+          </CheckInStatusProvider>
+        </AuthProvider>
       </ThemeProvider>
     </ColorModeContext.Provider>
   )

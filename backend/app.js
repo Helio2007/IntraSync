@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const eventsRouter = require('./routes/events');
 const authRouter = require('./routes/auth');
 const checkinRouter = require('./routes/checkin');
+const companyEventsRouter = require('./routes/companyEvents');
 
 const app = express();
 
@@ -17,5 +18,6 @@ app.use(express.json());
 app.use('/api/events', eventsRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/checkin', checkinRouter);
+app.use('/api/company-events', companyEventsRouter);
 
 module.exports = app; 
