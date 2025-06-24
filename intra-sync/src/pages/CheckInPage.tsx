@@ -1,104 +1,86 @@
-import { useState, useEffect } from 'react';
-import { Container, Typography, Button, Box, Alert, Card, CardContent, Fade, CircularProgress } from '@mui/material';
+import { useEffect, useState } from 'react';
+import { Box, Typography, Paper, CircularProgress, Alert } from '@mui/material';
 import QRScanner from '../components/QRScanner';
-import { getEvents, addEvent } from '../services/eventService';
+import axios from 'axios';
+import { useCheckInStatus } from '../context/CheckInStatusContext';
 
-const MOCK_USER_ID = 'user123'; // Replace with real user ID when available
+const COOLDOWN_SECONDS = 5;
 
 const CheckInPage = () => {
-  const [scanResult, setScanResult] = useState<string | null>(null);
-  const [checkedIn, setCheckedIn] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { checkedIn, checkInTime, checkOutTime, setStatus, refreshStatus } = useCheckInStatus();
+  const [error, setError] = useState('');
+  const [qrResult, setQrResult] = useState('');
+  const [cooldown, setCooldown] = useState(0);
 
-  // Fetch latest check-in/out event to determine status
   useEffect(() => {
-    const fetchStatus = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const events = await getEvents();
-        // Find the latest check-in or check-out event for the mock user
-        const userEvents = events.filter(e => e.type === 'checkin' || e.type === 'checkout');
-        if (userEvents.length > 0) {
-          const latest = userEvents[userEvents.length - 1];
-          setCheckedIn(latest.type === 'checkin');
-        } else {
-          setCheckedIn(false);
-        }
-      } catch (err) {
-        setError('Nuk mund të merret statusi i check-in.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchStatus();
+    refreshStatus();
+    // eslint-disable-next-line
   }, []);
 
-  const handleError = (err: any) => {
-    setError('Gabim gjatë skanimit.');
-  };
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (cooldown > 0) {
+      timer = setTimeout(() => setCooldown(cooldown - 1), 1000);
+    }
+    return () => clearTimeout(timer);
+  }, [cooldown]);
 
-  const handleCheckIn = async () => {
-    setError(null);
+  const handleScan = async (result: string) => {
+    if (cooldown > 0) return;
+    setQrResult(result);
+    setError('');
     try {
-      await addEvent({
-        title: 'Check-In',
-        time: new Date().toISOString(),
-        type: 'checkin',
-        status: 'complete',
-      });
-      setCheckedIn(true);
-      setScanResult(null);
-    } catch (err) {
-      setError('Gabim gjatë regjistrimit të check-in.');
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('Not logged in');
+      if (checkedIn) {
+        const res = await axios.post('/api/checkin/out', {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setStatus({ checkedIn: false, checkInTime, checkOutTime: res.data.checkOutTime });
+      } else {
+        const res = await axios.post('/api/checkin/in', {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setStatus({ checkedIn: true, checkInTime: res.data.checkInTime, checkOutTime: null });
+      }
+      setCooldown(COOLDOWN_SECONDS);
+      refreshStatus();
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'QR check-in/out failed');
+      refreshStatus();
     }
   };
 
-  const handleRetry = () => {
-    setScanResult(null);
-    setError(null);
-  };
-
   return (
-    <Container maxWidth="sm" sx={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', px: { xs: 1, sm: 0 } }}>
-      <Card elevation={4} sx={{ width: { xs: '100%', sm: 400 }, borderRadius: 4, p: { xs: 1.5, sm: 2 }, bgcolor: 'background.paper' }}>
-        <CardContent>
-          <Typography variant={{ xs: 'h5', sm: 'h4' }} align="center" fontWeight={700} gutterBottom sx={{ mb: 3, color: 'primary.main', fontSize: { xs: 28, sm: 34 } }}>
-            Check-In
+    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 4 }}>
+      <Paper elevation={4} sx={{ p: 3, borderRadius: 4, maxWidth: 400, width: '100%', mb: 3 }}>
+        <Typography variant="h5" fontWeight={700} align="center" color="primary.main" gutterBottom>
+          QR Check-In/Out
+        </Typography>
+        <Typography align="center" color="text.secondary" sx={{ mb: 2 }}>
+          Scan the QR code below to {checkedIn ? 'check out' : 'check in'}.
+        </Typography>
+        {cooldown > 0 ? (
+          <Alert severity="info" sx={{ mb: 2, textAlign: 'center' }}>
+            Please wait {cooldown} second{cooldown !== 1 ? 's' : ''} before scanning again.
+          </Alert>
+        ) : (
+          <QRScanner onScan={handleScan} />
+        )}
+        {checkedIn && checkInTime && (
+          <Typography align="center" color="success.main" sx={{ mt: 2 }}>
+            You are checked in since {new Date(checkInTime).toLocaleTimeString()}.
           </Typography>
-          <Box sx={{ my: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-            {loading && <CircularProgress />}
-            {!loading && checkedIn && (
-              <Alert severity="success" sx={{ width: '100%' }}>Jeni i checkuar brenda!</Alert>
-            )}
-            {!loading && !checkedIn && !scanResult && !error && (
-              <Fade in timeout={500}>
-                <Box>
-                  <QRScanner onScan={setScanResult} onError={handleError} />
-                </Box>
-              </Fade>
-            )}
-            {scanResult && !checkedIn && (
-              <Alert severity="info" sx={{ mb: 2, width: '100%' }}>QR Code: {scanResult}</Alert>
-            )}
-            {scanResult && !checkedIn && (
-              <Button variant="contained" color="success" size="large" fullWidth sx={{ fontWeight: 600, borderRadius: 3 }} onClick={handleCheckIn}>
-                Konfirmo Check-In
-              </Button>
-            )}
-            {(error && !loading) && (
-              <Alert severity="error" sx={{ width: '100%' }}>{error}</Alert>
-            )}
-            {(!!scanResult || !!error) && !checkedIn && !loading && (
-              <Button variant="outlined" color="primary" sx={{ mt: 2 }} onClick={handleRetry}>
-                Provo përsëri
-              </Button>
-            )}
-          </Box>
-        </CardContent>
-      </Card>
-    </Container>
+        )}
+        {!checkedIn && checkOutTime && (
+          <Typography align="center" color="text.secondary" sx={{ mt: 2 }}>
+            Last checked out at {new Date(checkOutTime).toLocaleTimeString()}.
+          </Typography>
+        )}
+        {qrResult && <Typography align="center" color="primary" sx={{ mt: 2 }}>QR Result: {qrResult}</Typography>}
+        {error && <Typography color="error" align="center" sx={{ mt: 2 }}>{error}</Typography>}
+      </Paper>
+    </Box>
   );
 };
 

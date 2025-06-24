@@ -139,86 +139,101 @@ const DashboardPage = () => {
   };
 
   return (
-    <Container maxWidth="md" sx={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', px: { xs: 1, sm: 0 } }}>
-      <Box width={{ xs: '100%', sm: '100%' }}>
-        <Typography variant={{ xs: 'h5', sm: 'h4' }} gutterBottom sx={{ fontWeight: 700, mb: 3, textAlign: 'center', fontSize: { xs: 28, sm: 34 } }}>Dashboard</Typography>
-        <Typography mb={4} textAlign="center" sx={{ fontSize: { xs: 15, sm: 16 } }}>Mirësevini në IntraSync! Këtu do të shfaqen axhenda, njoftime dhe funksionalitete të tjera.</Typography>
-        <Box>
-          {loading && <Box display="flex" justifyContent="center" alignItems="center" minHeight={120}><CircularProgress /></Box>}
-          {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-          <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'stretch', sm: 'center' }} mb={2} gap={2}>
-            <Typography variant="h6" sx={{ textAlign: { xs: 'center', sm: 'left' } }}>Axhenda e Ditës</Typography>
-            <Button variant="contained" size="large" onClick={() => handleOpenDialog()} sx={{ borderRadius: 3, fontWeight: 600 }} fullWidth={true}>
+    <Box sx={{ py: 4, px: { xs: 2, sm: 4, md: 6 } }}>
+      <Box width="100%">
+        <Typography variant="h4" gutterBottom sx={{ fontWeight: 700, mb: 3, textAlign: 'center' }}>
+          Dashboard
+        </Typography>
+        <Typography variant="body1" color="text.secondary" sx={{ textAlign: 'center', mb: 5 }}>
+          Mirësevini në IntraSync! Këtu do të shfaqen axhenda, njoftime dhe funksionalitete të tjera.
+        </Typography>
+
+        <Box sx={{ maxWidth: 900, mx: 'auto' }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+              Axhenda e Ditës
+            </Typography>
+            <Button variant="contained" color="primary" onClick={handleOpenDialog}>
               Shto Event
             </Button>
           </Box>
-          <Stack spacing={3}>
-            {sortedAgenda.length === 0 && (
-              <Card elevation={0} sx={{ p: 3, textAlign: 'center', color: 'text.secondary', bgcolor: 'background.paper' }}>
-                Nuk ka evente për sot. Shto një event të ri!
-              </Card>
-            )}
-            {sortedAgenda.map((item, idx) => (
-              <Fade in timeout={400} key={item.time + item.title}>
-                <Card
-                  elevation={item.status === 'pending' ? 3 : 0}
-                  sx={{
-                    bgcolor: item.status === 'complete' ? '#f0f0f0' : 'background.paper',
-                    borderLeft: `6px solid ${item.type === 'meeting' ? '#1976d2' : item.type === 'task' ? '#90caf9' : '#bdbdbd'}`,
-                    transition: 'box-shadow 0.2s, background 0.2s',
-                    ':hover': { boxShadow: 6, bgcolor: '#f5faff' },
-                  }}
-                >
-                  <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
-                    <Box mr={{ xs: 0, sm: 2 }} mb={{ xs: 1, sm: 0 }} display="flex" alignItems="center" justifyContent="center">
-                      {getTypeIcon(item.type)}
-                    </Box>
-                    <Box flex={1} width="100%">
-                      <Typography variant="subtitle1" sx={item.status === 'complete' ? { textDecoration: 'line-through', color: '#888', textAlign: { xs: 'center', sm: 'left' } } : { fontWeight: 600, textAlign: { xs: 'center', sm: 'left' } }}>
-                        {item.title}
-                      </Typography>
-                      <Box display="flex" alignItems="center" gap={1} mt={0.5} justifyContent={{ xs: 'center', sm: 'flex-start' }}>
-                        <Chip
-                          label={item.time}
-                          color={getTypeColor(item.type)}
-                          size="small"
-                          sx={{ fontWeight: 600 }}
-                        />
-                        <Chip
-                          label={eventTypes.find(e => e.value === item.type)?.label}
-                          color={getTypeColor(item.type)}
-                          size="small"
-                          variant="outlined"
-                        />
-                        {item.status === 'complete' && (
-                          <Chip label="Përfunduar" color="success" size="small" />
-                        )}
+
+          <Box>
+            {loading && <Box display="flex" justifyContent="center" alignItems="center" minHeight={120}><CircularProgress /></Box>}
+            {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+            <Stack spacing={3}>
+              {sortedAgenda.length === 0 && (
+                <Card elevation={0} sx={{ p: 3, textAlign: 'center', color: 'text.secondary', bgcolor: 'background.paper' }}>
+                  Nuk ka evente për sot. Shto një event të ri!
+                </Card>
+              )}
+              {sortedAgenda.map((item, idx) => (
+                <Fade in timeout={400} key={item.time + item.title}>
+                  <Card
+                    elevation={item.status === 'pending' ? 3 : 0}
+                    sx={{
+                      bgcolor: item.status === 'complete' ? '#f0f0f0' : 'background.paper',
+                      borderLeft: `6px solid ${item.type === 'meeting' ? '#1976d2' : item.type === 'task' ? '#90caf9' : '#bdbdbd'}`,
+                    }}
+                  >
+                    <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
+                      <Box mr={{ xs: 0, sm: 2 }} mb={{ xs: 1, sm: 0 }} display="flex" alignItems="center" justifyContent="center">
+                        {getTypeIcon(item.type)}
                       </Box>
-                    </Box>
-                    <Box display="flex" alignItems="center" gap={1} justifyContent={{ xs: 'center', sm: 'flex-end' }} width={{ xs: '100%', sm: 'auto' }}>
-                      {item.status === 'pending' && (
-                        <Tooltip title="Përfundo" arrow>
-                          <IconButton edge="end" aria-label="complete" color="success" onClick={() => handleCompleteEvent(agenda.indexOf(item))}>
-                            <CheckCircleIcon />
+                      <Box flex={1} width="100%">
+                        <Typography variant="subtitle1" sx={item.status === 'complete' ? { textDecoration: 'line-through', color: '#888', textAlign: { xs: 'center', sm: 'left' } } : { fontWeight: 600, textAlign: { xs: 'center', sm: 'left' } }}>
+                          {item.title}
+                        </Typography>
+                        <Box display="flex" alignItems="center" gap={1} mt={0.5} justifyContent={{ xs: 'center', sm: 'flex-start' }}>
+                          <Chip
+                            label={item.time}
+                            color={getTypeColor(item.type)}
+                            size="small"
+                            sx={{ fontWeight: 600 }}
+                          />
+                          <Chip
+                            label={eventTypes.find(e => e.value === item.type)?.label}
+                            color={getTypeColor(item.type)}
+                            size="small"
+                            variant="outlined"
+                          />
+                          {item.status === 'complete' && (
+                            <Chip label="Përfunduar" color="success" size="small" />
+                          )}
+                        </Box>
+                      </Box>
+                      <Box
+                        display="flex"
+                        alignItems="center"
+                        gap={1}
+                        justifyContent={{ xs: 'center', sm: 'flex-end' }}
+                        width={{ xs: '100%', sm: 'auto' }}
+                        sx={item.status === 'complete' ? { '& .MuiIconButton-root': { color: '#888' } } : {}}
+                      >
+                        {item.status === 'pending' && (
+                          <Tooltip title="Përfundo" arrow>
+                            <IconButton edge="end" aria-label="complete" color="success" onClick={() => handleCompleteEvent(agenda.indexOf(item))}>
+                              <CheckCircleIcon />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+                        <Tooltip title="Edito" arrow>
+                          <IconButton edge="end" aria-label="edit" onClick={() => handleOpenDialog(agenda.indexOf(item))}>
+                            <EditIcon />
                           </IconButton>
                         </Tooltip>
-                      )}
-                      <Tooltip title="Edito" arrow>
-                        <IconButton edge="end" aria-label="edit" onClick={() => handleOpenDialog(agenda.indexOf(item))}>
-                          <EditIcon />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Fshi" arrow>
-                        <IconButton edge="end" aria-label="delete" onClick={() => handleDeleteEvent(agenda.indexOf(item))}>
-                          <DeleteIcon />
-                        </IconButton>
-                      </Tooltip>
-                    </Box>
-                  </CardContent>
-                </Card>
-              </Fade>
-            ))}
-          </Stack>
+                        <Tooltip title="Fshi" arrow>
+                          <IconButton edge="end" aria-label="delete" onClick={() => handleDeleteEvent(agenda.indexOf(item))}>
+                            <DeleteIcon />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
+                    </CardContent>
+                  </Card>
+                </Fade>
+              ))}
+            </Stack>
+          </Box>
         </Box>
         <Snackbar
           open={!!notification}
@@ -240,12 +255,17 @@ const DashboardPage = () => {
               required
             />
             <TextField
-              label="Ora (p.sh. 14:00)"
+              margin="dense"
               name="time"
+              label="Koha"
+              type="time"
+              fullWidth
+              variant="standard"
               value={newEvent.time}
               onChange={handleChange}
-              fullWidth
-              required
+              InputLabelProps={{
+                shrink: true,
+              }}
             />
             <TextField
               select
@@ -266,7 +286,7 @@ const DashboardPage = () => {
           </DialogActions>
         </Dialog>
       </Box>
-    </Container>
+    </Box>
   );
 };
 

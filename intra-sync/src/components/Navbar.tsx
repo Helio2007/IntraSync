@@ -13,10 +13,12 @@ import Divider from '@mui/material/Divider';
 import MenuIcon from '@mui/icons-material/Menu';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTheme } from '@mui/material/styles';
 import { ColorModeContext } from '../main';
 import { useContext, useState } from 'react';
+import logoBlack from '../assets/intrasync-logo-black.png';
+import logoWhite from '../assets/intrasync-logo-white.png';
 
 const navLinks = [
   { label: 'Login', to: '/' },
@@ -30,6 +32,8 @@ const Navbar = () => {
   const theme = useTheme();
   const colorMode = useContext(ColorModeContext);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const navigate = useNavigate();
+  const isLoggedIn = Boolean(localStorage.getItem('token'));
 
   const handleDrawerToggle = () => setDrawerOpen((prev) => !prev);
 
@@ -37,7 +41,7 @@ const Navbar = () => {
     <Box sx={{ flexGrow: 1, mb: 4 }}>
       <AppBar
         position="sticky"
-        elevation={2}
+        elevation={4}
         sx={{
           display: { xs: drawerOpen ? 'none' : 'block', md: 'block' },
           bgcolor: theme.palette.background.paper,
@@ -45,24 +49,21 @@ const Navbar = () => {
           borderBottom: `1.5px solid ${theme.palette.divider}`,
           top: 0,
           zIndex: 1201,
+          borderRadius: { xs: 3, sm: 4 },
+          mx: 'auto',
+          maxWidth: 1100,
+          mt: 2,
+          boxShadow: { xs: 6, sm: 8 },
         }}
       >
-        <Toolbar sx={{ minHeight: 64, px: { xs: 1, sm: 3 } }}>
-          <Typography
-            variant="h5"
-            component={Link}
-            to="/"
-            sx={{
-              flexGrow: 1,
-              fontWeight: 700,
-              textDecoration: 'none',
-              color: theme.palette.primary.main,
-              letterSpacing: 1,
-              fontFamily: 'Inter, Roboto, Arial, sans-serif',
-            }}
-          >
-            IntraSync
-          </Typography>
+        <Toolbar sx={{ minHeight: { xs: 64, sm: 72 }, px: { xs: 1, sm: 3 } }}>
+          <Box component={Link} to="/" sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
+            <img
+              src={theme.palette.mode === 'dark' ? logoWhite : logoBlack}
+              alt="IntraSync Logo"
+              style={{ height: theme.breakpoints.values.xs ? 40 : 60, maxHeight: 60, width: 'auto', transition: 'height 0.2s' }}
+            />
+          </Box>
           {/* Mobile menu */}
           <Box sx={{ display: { xs: 'flex', md: 'none' }, alignItems: 'center' }}>
             <IconButton sx={{ ml: 1 }} onClick={colorMode.toggleColorMode} color="inherit">
@@ -79,7 +80,7 @@ const Navbar = () => {
             </IconButton>
           </Box>
           {/* Desktop menu */}
-          <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center' }}>
+          <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 1.5 }}>
             {navLinks.map((link) => (
               <Button
                 key={link.to}
@@ -87,12 +88,25 @@ const Navbar = () => {
                 component={Link}
                 to={link.to}
                 size="large"
-                sx={{ mx: 1, fontWeight: 600, borderRadius: 2, bgcolor: location.pathname === link.to ? theme.palette.action.selected : 'transparent', ':hover': { bgcolor: theme.palette.action.hover } }}
+                sx={{
+                  fontSize: { xs: 15, sm: 17 },
+                  mx: 1,
+                  fontWeight: 600,
+                  borderRadius: 2,
+                  bgcolor: location.pathname === link.to ? theme.palette.action.selected : 'transparent',
+                  ':hover': { bgcolor: theme.palette.action.hover },
+                }}
                 disabled={location.pathname === link.to}
               >
                 {link.label}
               </Button>
             ))}
+            {!isLoggedIn && (
+              <Button color="inherit" component={Link} to="/register">Register</Button>
+            )}
+            {isLoggedIn && (
+              <Button color="inherit" onClick={() => { localStorage.removeItem('token'); localStorage.removeItem('user'); navigate('/'); }}>Logout</Button>
+            )}
             <IconButton sx={{ ml: 2 }} onClick={colorMode.toggleColorMode} color="inherit">
               {theme.palette.mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
             </IconButton>
@@ -140,6 +154,24 @@ const Navbar = () => {
               </ListItemButton>
             </ListItem>
           ))}
+        </List>
+        <Divider sx={{ my: 2, borderColor: theme.palette.mode === 'dark' ? '#444' : theme.palette.divider }} />
+        <Divider sx={{ my: 1, borderColor: theme.palette.mode === 'dark' ? '#444' : theme.palette.divider }} />
+        <List>
+          {!isLoggedIn && (
+            <ListItem disablePadding>
+              <ListItemButton component={Link} to="/register" sx={{ justifyContent: 'center', borderRadius: 2, py: 1.5 }}>
+                <ListItemText primary="Register" primaryTypographyProps={{ fontSize: 17, fontWeight: 600 }} />
+              </ListItemButton>
+            </ListItem>
+          )}
+          {isLoggedIn && (
+            <ListItem disablePadding>
+              <ListItemButton onClick={() => { localStorage.removeItem('token'); localStorage.removeItem('user'); navigate('/'); }} sx={{ justifyContent: 'center', borderRadius: 2, py: 1.5 }}>
+                <ListItemText primary="Logout" primaryTypographyProps={{ fontSize: 17, fontWeight: 600 }} />
+              </ListItemButton>
+            </ListItem>
+          )}
         </List>
         <Divider sx={{ my: 2, borderColor: theme.palette.mode === 'dark' ? '#444' : theme.palette.divider }} />
         <List>
