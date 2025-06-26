@@ -15,7 +15,7 @@ import { getEvents, addEvent, updateEvent, deleteEvent } from "@/services/eventS
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval, parseISO } from "date-fns";
 
-function HomePage({ isCheckedIn, checkInTime, hoursToday, error, onCheckInClick, events = [] }) {
+function HomePage({ isCheckedIn, checkInTime, hoursToday, error, onCheckInClick, events = [], setActiveTab }) {
   const todayStr = new Date().toISOString().slice(0, 10);
   const todaysEvents = events.filter(e => e.date === todayStr);
   // Sort by time
@@ -670,6 +670,7 @@ export default function App() {
             error={error}
             onCheckInClick={() => setActiveTab("scanner")}
             events={events}
+            setActiveTab={setActiveTab}
           />
         )}
         {activeTab === "scanner" && renderScannerScreen(handleQRScan, scannerSuccess, scannerMessage)}
