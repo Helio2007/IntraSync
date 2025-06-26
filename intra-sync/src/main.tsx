@@ -6,6 +6,7 @@ import { ThemeProvider, createTheme } from '@mui/material/styles'
 import CssBaseline from '@mui/material/CssBaseline'
 import { CheckInStatusProvider } from './context/CheckInStatusContext'
 import { AuthProvider } from './context/AuthContext'
+import { BrowserRouter as Router } from 'react-router-dom'
 
 export const ColorModeContext = createContext({ toggleColorMode: () => {}, mode: 'light' })
 
@@ -64,7 +65,9 @@ const Main = () => {
         <AuthProvider>
           <CheckInStatusProvider>
             <CssBaseline />
-            <App />
+            <Router>
+              <App />
+            </Router>
           </CheckInStatusProvider>
         </AuthProvider>
       </ThemeProvider>

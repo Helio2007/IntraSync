@@ -129,11 +129,9 @@ const CompanyCalendarPage = () => {
           Kalendar i Kompanisë
         </Typography>
         <Box mb={3} display="flex" justifyContent="flex-end">
-          {(user?.role === 'admin' || user?.role === 'ceo') && (
-            <Button variant="contained" color="primary" onClick={handleOpenAddDialog}>
-              Shto Event Kompanie
-            </Button>
-          )}
+          <Button variant="contained" color="primary" onClick={handleOpenAddDialog}>
+            Shto Event
+          </Button>
         </Box>
         <Box width="100%">
           {loading && <Box display="flex" justifyContent="center" alignItems="center" minHeight={120}><CircularProgress /></Box>}
@@ -144,7 +142,12 @@ const CompanyCalendarPage = () => {
                 Nuk ka evente të kompanisë.
               </Card>
             ) : (
-              events.map((item, idx) => (
+              [...events].sort((a, b) => {
+                // Sort by date then time
+                const dateA = new Date(`${a.date}T${a.time}`);
+                const dateB = new Date(`${b.date}T${b.time}`);
+                return dateA.getTime() - dateB.getTime();
+              }).map((item, idx) => (
                 <Card key={item._id || idx} elevation={2} sx={{ borderLeft: `6px solid`, borderColor: typeColors[item.type] || 'grey.400', bgcolor: 'background.paper', width: { xs: '100%', sm: '100%' } }}>
                   <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2, flexDirection: { xs: 'column', sm: 'row' } }}>
                     <Box mr={{ xs: 0, sm: 2 }} mb={{ xs: 1, sm: 0 }} display="flex" alignItems="center" justifyContent="center">

@@ -13,7 +13,13 @@ const userSchema = new mongoose.Schema({
     checkedIn: { type: Boolean, default: false },
     checkInTime: { type: Date },
     checkOutTime: { type: Date }
-  }
+  },
+  checkInHistory: [
+    {
+      checkInTime: { type: Date, required: true },
+      checkOutTime: { type: Date },
+    }
+  ]
 });
 
 module.exports = mongoose.model('User', userSchema); 
