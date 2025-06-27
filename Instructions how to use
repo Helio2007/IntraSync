@@ -78,6 +78,7 @@ yarn install
 
 **npm:**
 ```sh
+cd backend
 npm start
 ```
 Or directly:
