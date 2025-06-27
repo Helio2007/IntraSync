@@ -1,0 +1,221 @@
+# React + TypeScript + Vite
+
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+
+Currently, two official plugins are available:
+
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+
+## Expanding the ESLint configuration
+
+If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+
+```js
+export default tseslint.config({
+  extends: [
+    // Remove ...tseslint.configs.recommended and replace with this
+    ...tseslint.configs.recommendedTypeChecked,
+    // Alternatively, use this for stricter rules
+    ...tseslint.configs.strictTypeChecked,
+    // Optionally, add this for stylistic rules
+    ...tseslint.configs.stylisticTypeChecked,
+  ],
+  languageOptions: {
+    // other options...
+    parserOptions: {
+      project: ['./tsconfig.node.json', './tsconfig.app.json'],
+      tsconfigRootDir: import.meta.dirname,
+    },
+  },
+})
+```
+
+You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+
+```js
+// eslint.config.js
+import reactX from 'eslint-plugin-react-x'
+import reactDom from 'eslint-plugin-react-dom'
+
+export default tseslint.config({
+  plugins: {
+    // Add the react-x and react-dom plugins
+    'react-x': reactX,
+    'react-dom': reactDom,
+  },
+  rules: {
+    // other rules...
+    // Enable its recommended typescript rules
+    ...reactX.configs['recommended-typescript'].rules,
+    ...reactDom.configs.recommended.rules,
+  },
+})
+```
+
+## Common Commands
+
+Below are the most common commands you will need to set up, run, and manage this project. Both npm and Yarn alternatives are provided where applicable.
+
+---
+
+### 1. Install Dependencies
+
+**npm:**
+```sh
+npm install
+```
+**Yarn:**
+```sh
+yarn install
+```
+
+---
+
+### 2. Running the Application
+
+#### Backend
+
+**npm:**
+```sh
+npm start
+```
+Or directly:
+```sh
+node backend/app.js
+```
+Or with auto-reload (development):
+```sh
+npx nodemon backend/app.js
+```
+
+#### Frontend (Vite/React)
+
+Navigate to the frontend directory:
+```sh
+cd intra-sync
+```
+
+**npm:**
+```sh
+npm run dev
+```
+**Yarn:**
+```sh
+yarn dev
+```
+
+---
+
+### 3. Building for Production
+
+**npm:**
+```sh
+npm run build
+```
+**Yarn:**
+```sh
+yarn build
+```
+
+---
+
+### 4. Running Tests
+
+**npm:**
+```sh
+npm test
+```
+**Yarn:**
+```sh
+yarn test
+```
+
+---
+
+### 5. Installing a Specific Package
+
+**npm:**
+```sh
+npm install <package-name>
+```
+**Yarn:**
+```sh
+yarn add <package-name>
+```
+
+---
+
+### 6. Updating Dependencies
+
+**npm:**
+```sh
+npm update
+```
+**Yarn:**
+```sh
+yarn upgrade
+```
+
+---
+
+### 7. Removing a Package
+
+**npm:**
+```sh
+npm uninstall <package-name>
+```
+**Yarn:**
+```sh
+yarn remove <package-name>
+```
+
+---
+
+### 8. Useful Global Tools
+
+- **nodemon** (for backend auto-reload):
+  ```sh
+  npm install -g nodemon
+  ```
+- **yarn** (alternative package manager):
+  ```sh
+  npm install -g yarn
+  ```
+
+---
+
+### 9. Checking Node and npm Versions
+
+```sh
+node -v
+npm -v
+```
+
+---
+
+### 10. Other Useful Commands
+
+- **List installed packages:**
+  ```sh
+  npm list --depth=0
+  ```
+- **Audit for vulnerabilities:**
+  ```sh
+  npm audit
+  ```
+
+---
+
+### Summary Table
+
+| Purpose                | npm Command                | Yarn Alternative         |
+|------------------------|---------------------------|-------------------------|
+| Install dependencies   | npm install               | yarn install            |
+| Start backend          | npm start / node app.js   | yarn start              |
+| Start frontend (Vite)  | npm run dev               | yarn dev                |
+| Build frontend         | npm run build             | yarn build              |
+| Run tests              | npm test                  | yarn test               |
+| Add package            | npm install <pkg>         | yarn add <pkg>          |
+| Remove package         | npm uninstall <pkg>       | yarn remove <pkg>       |
+| Update packages        | npm update                | yarn upgrade            |
