@@ -15,7 +15,7 @@ import { getEvents, addEvent, updateEvent, deleteEvent } from "@/services/eventS
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval, parseISO } from "date-fns";
 
-function HomePage({ isCheckedIn, checkInTime, hoursToday, error, onCheckInClick, events = [], setActiveTab }) {
+function HomePage({ isCheckedIn, checkInTime, hoursToday, error, onCheckInClick, events = [], setActiveTab, workStats }) {
   const todayStr = new Date().toISOString().slice(0, 10);
   const todaysEvents = events.filter(e => e.date === todayStr);
   // Sort by time
@@ -49,6 +49,38 @@ function HomePage({ isCheckedIn, checkInTime, hoursToday, error, onCheckInClick,
           {error && <div className="text-red-200 mt-2 text-sm">{error}</div>}
         </CardContent>
       </Card>
+
+      {/* Compact statistics bar */}
+      {workStats && (
+        <div className="grid grid-cols-3 gap-3">
+          <Card className="bg-slate-50">
+            <CardContent className="py-3 px-3">
+              <p className="text-xs text-gray-500">Hours this week</p>
+              <p className="text-sm font-semibold">
+                {(workStats.hoursThisWeek?.hours ?? 0) > 0 &&
+                  `${workStats.hoursThisWeek.hours}h `}
+                {`${workStats.hoursThisWeek?.minutes ?? 0}m`}
+              </p>
+            </CardContent>
+          </Card>
+          <Card className="bg-slate-50">
+            <CardContent className="py-3 px-3">
+              <p className="text-xs text-gray-500">Days present</p>
+              <p className="text-sm font-semibold">
+                {workStats.daysPresent ?? 0}
+              </p>
+            </CardContent>
+          </Card>
+          <Card className="bg-slate-50">
+            <CardContent className="py-3 px-3">
+              <p className="text-xs text-gray-500">Tasks done</p>
+              <p className="text-sm font-semibold">
+                {workStats.tasksCompleted ?? 0}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Quick Actions */}
       <div className="grid grid-cols-2 gap-4">
@@ -671,6 +703,7 @@ export default function App() {
             onCheckInClick={() => setActiveTab("scanner")}
             events={events}
             setActiveTab={setActiveTab}
+            workStats={workStats}
           />
         )}
         {activeTab === "scanner" && renderScannerScreen(handleQRScan, scannerSuccess, scannerMessage)}
