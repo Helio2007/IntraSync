@@ -35,6 +35,9 @@ export interface CompanyEvent {
   date: string;
   time: string;
   type: string;
+  location?: string;
+  isCompanyEvent?: boolean;
+  status?: 'scheduled' | 'completed';
   createdBy?: string;
   createdAt?: string;
 }

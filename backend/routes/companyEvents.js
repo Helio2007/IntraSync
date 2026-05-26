@@ -3,6 +3,7 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const CompanyEvent = require('../models/CompanyEvent');
 const User = require('../models/User');
+const Notification = require('../models/Notification');
 
 const JWT_SECRET = 'your_jwt_secret'; // Use env in production
 
@@ -35,7 +36,7 @@ router.post('/', auth, async (req, res) => {
   if (req.user.role !== 'admin' && req.user.role !== 'ceo') {
     return res.status(403).json({ message: 'Not authorized' });
   }
-  const { title, date, time, type } = req.body;
+  const { title, date, time, type, location = '' } = req.body;
   if (!title || !date || !time || !type) {
     return res.status(400).json({ message: 'Missing fields' });
   }
@@ -45,9 +46,25 @@ router.post('/', auth, async (req, res) => {
       date,
       time,
       type,
+      location,
       createdBy: req.user.userId
     });
     await event.save();
+
+    // Create in-app notifications for all users
+    const users = await User.find({}, { _id: 1 });
+    const prettyType = type === 'meeting' ? 'Meeting' : type === 'task' ? 'Task' : 'Event';
+    const msg = `${prettyType}: ${title} • ${date} ${time}${location ? ` • ${location}` : ''}`;
+    await Notification.insertMany(
+      users.map(u => ({
+        userId: u._id,
+        title: 'New company event',
+        message: msg,
+        type: 'event',
+        meta: { companyEventId: event._id, kind: type, date, time, location },
+      }))
+    );
+
     res.status(201).json(event);
   } catch (err) {
     res.status(500).json({ message: 'Server error' });

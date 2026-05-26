@@ -5,6 +5,8 @@ const eventsRouter = require('./routes/events');
 const authRouter = require('./routes/auth');
 const checkinRouter = require('./routes/checkin');
 const companyEventsRouter = require('./routes/companyEvents');
+const notificationsRouter = require('./routes/notifications');
+const adminRouter = require('./routes/admin');
 
 const app = express();
 
@@ -19,5 +21,7 @@ app.use('/api/events', eventsRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/checkin', checkinRouter);
 app.use('/api/company-events', companyEventsRouter);
+app.use('/api/notifications', notificationsRouter);
+app.use('/api/admin', adminRouter);
 
 module.exports = app; 
